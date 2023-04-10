@@ -1,0 +1,42 @@
+<configuration>
+    <!-- 定义日志的根目录 -->
+    <property name="LOG_HOME" value="./logs1.log" />
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 正常文件输出设置 -->
+    <appender name="FILE_DEBUG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LOG_HOME}</File>
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <FileNamePattern>${LOG_HOME}-%d{yyyy-MM-dd}-%i.zip
+            </FileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>365</maxHistory>
+            <totalSizeCap>20GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} -
+                %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- camunda -->
+    <logger name="org.camunda" level="debug" />
+
+    <!-- common dependencies -->
+    <logger name="org.apache.ibatis" level="info" />
+    <logger name="javax.activation" level="info" />
+    <logger name="org.springframework" level="info" />
+
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

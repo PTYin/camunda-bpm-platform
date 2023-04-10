@@ -43,7 +43,8 @@ public class DbSqlSessionFactory implements SessionFactory {
   public static final String POSTGRES = "postgres";
   public static final String MARIADB = "mariadb";
   public static final String CRDB = "cockroachdb";
-  public static final String[] SUPPORTED_DATABASES = {MSSQL, DB2, ORACLE, H2, MYSQL, POSTGRES, MARIADB, CRDB};
+  public static final String DMDBMS = "dm";  // Dameng
+  public static final String[] SUPPORTED_DATABASES = {MSSQL, DB2, ORACLE, H2, MYSQL, POSTGRES, MARIADB, CRDB, DMDBMS};
 
   protected static final Map<String, Map<String, String>> databaseSpecificStatements = new HashMap<>();
 
@@ -714,6 +715,95 @@ public class DbSqlSessionFactory implements SessionFactory {
     constants.put("constant.integer.cast", "NULL");
     constants.put("constant.null.reporter", "NULL AS REPORTER_");
     dbSpecificConstants.put(MSSQL, constants);
+
+    // Added for Dameng
+    databaseSpecificLimitBeforeStatements.put(DMDBMS, "select * from ( select a.*, ROWNUM rnum from (");
+    optimizeDatabaseSpecificLimitBeforeWithoutOffsetStatements.put(DMDBMS, "select * from ( select a.*, ROWNUM rnum from (");
+    databaseSpecificLimitAfterStatements.put(DMDBMS, "  ) a where ROWNUM < #{lastRow}) where rnum  >= #{firstRow}");
+    optimizeDatabaseSpecificLimitAfterWithoutOffsetStatements.put(DMDBMS, "  ) a where ROWNUM <= #{maxResults})");
+    databaseSpecificLimitBeforeWithoutOffsetStatements.put(DMDBMS, "");
+    databaseSpecificLimitAfterWithoutOffsetStatements.put(DMDBMS, "AND ROWNUM <= #{maxResults}");
+    databaseSpecificInnerLimitAfterStatements.put(DMDBMS, databaseSpecificLimitAfterStatements.get(DMDBMS));
+    databaseSpecificLimitBetweenStatements.put(DMDBMS, "");
+    databaseSpecificLimitBetweenFilterStatements.put(DMDBMS, "");
+    databaseSpecificLimitBetweenAcquisitionStatements.put(DMDBMS, "");
+    databaseSpecificOrderByStatements.put(DMDBMS, defaultOrderBy);
+    databaseSpecificLimitBeforeNativeQueryStatements.put(DMDBMS, "");
+    databaseSpecificDistinct.put(DMDBMS, "distinct");
+    databaseSpecificNumericCast.put(DMDBMS, "");
+
+    databaseSpecificCountDistinctBeforeStart.put(DMDBMS, defaultDistinctCountBeforeStart);
+    databaseSpecificCountDistinctBeforeEnd.put(DMDBMS, defaultDistinctCountBeforeEnd);
+    databaseSpecificCountDistinctAfterEnd.put(DMDBMS, defaultDistinctCountAfterEnd);
+
+    databaseSpecificEscapeChar.put(DMDBMS, defaultEscapeChar);
+
+    databaseSpecificDummyTable.put(DMDBMS, "FROM DUAL");
+    databaseSpecificBitAnd1.put(DMDBMS, "BITAND(");
+    databaseSpecificBitAnd2.put(DMDBMS, ",");
+    databaseSpecificBitAnd3.put(DMDBMS, ")");
+    databaseSpecificDatepart1.put(DMDBMS, "to_number(to_char(");
+    databaseSpecificDatepart2.put(DMDBMS, ",");
+    databaseSpecificDatepart3.put(DMDBMS, "))");
+
+    databaseSpecificTrueConstant.put(DMDBMS, "1");
+    databaseSpecificFalseConstant.put(DMDBMS, "0");
+    databaseSpecificIfNull.put(DMDBMS, "NVL");
+
+    databaseSpecificDaysComparator.put(DMDBMS, "${date} <= #{currentTimestamp} - ${days}");
+
+    databaseSpecificCollationForCaseSensitivity.put(DMDBMS, "");
+
+    databaseSpecificAuthJoinStart.put(DMDBMS, defaultAuthOnStart);
+    databaseSpecificAuthJoinEnd.put(DMDBMS, defaultAuthOnEnd);
+    databaseSpecificAuthJoinSeparator.put(DMDBMS, defaultAuthOnSeparator);
+
+    databaseSpecificAuth1JoinStart.put(DMDBMS, defaultAuthOnStart);
+    databaseSpecificAuth1JoinEnd.put(DMDBMS, defaultAuthOnEnd);
+    databaseSpecificAuth1JoinSeparator.put(DMDBMS, defaultAuthOnSeparator);
+
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricProcessInstanceDurationReport", "selectHistoricProcessInstanceDurationReport_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricTaskInstanceDurationReport", "selectHistoricTaskInstanceDurationReport_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricTaskInstanceCountByTaskNameReport", "selectHistoricTaskInstanceCountByTaskNameReport_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectFilterByQueryCriteria", "selectFilterByQueryCriteria_oracleDb2");
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricProcessInstanceIdsForCleanup", "selectHistoricProcessInstanceIdsForCleanup_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricDecisionInstanceIdsForCleanup", "selectHistoricDecisionInstanceIdsForCleanup_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricCaseInstanceIdsForCleanup", "selectHistoricCaseInstanceIdsForCleanup_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectHistoricBatchIdsForCleanup", "selectHistoricBatchIdsForCleanup_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "selectTaskMetricIdsForCleanup", "selectTaskMetricIdsForCleanup_oracle");
+
+    addDatabaseSpecificStatement(DMDBMS, "deleteAttachmentsByRemovalTime", "deleteAttachmentsByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteCommentsByRemovalTime", "deleteCommentsByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricActivityInstancesByRemovalTime", "deleteHistoricActivityInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricDecisionInputInstancesByRemovalTime", "deleteHistoricDecisionInputInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricDecisionInstancesByRemovalTime", "deleteHistoricDecisionInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricDecisionOutputInstancesByRemovalTime", "deleteHistoricDecisionOutputInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricDetailsByRemovalTime", "deleteHistoricDetailsByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteExternalTaskLogByRemovalTime", "deleteExternalTaskLogByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricIdentityLinkLogByRemovalTime", "deleteHistoricIdentityLinkLogByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricIncidentsByRemovalTime", "deleteHistoricIncidentsByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteJobLogByRemovalTime", "deleteJobLogByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricProcessInstancesByRemovalTime", "deleteHistoricProcessInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricTaskInstancesByRemovalTime", "deleteHistoricTaskInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricVariableInstancesByRemovalTime", "deleteHistoricVariableInstancesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteUserOperationLogByRemovalTime", "deleteUserOperationLogByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteByteArraysByRemovalTime", "deleteByteArraysByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteHistoricBatchesByRemovalTime", "deleteHistoricBatchesByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteAuthorizationsByRemovalTime", "deleteAuthorizationsByRemovalTime_oracle");
+    addDatabaseSpecificStatement(DMDBMS, "deleteTaskMetricsByRemovalTime", "deleteTaskMetricsByRemovalTime_oracle");
+
+    constants = new HashMap<>();
+    constants.put("constant.event", "cast('event' as nvarchar2(255))");
+    constants.put("constant.op_message", "NEW_VALUE_ || '_|_' || PROPERTY_");
+    constants.put("constant_for_update", "for update");
+    constants.put("constant.datepart.quarter", "'Q'");
+    constants.put("constant.datepart.month", "'MM'");
+    constants.put("constant.datepart.minute", "'MI'");
+    constants.put("constant.null.startTime", "null START_TIME_");
+    constants.put("constant.varchar.cast", "'${key}'");
+    constants.put("constant.integer.cast", "NULL");
+    constants.put("constant.null.reporter", "NULL AS REPORTER_");
+    dbSpecificConstants.put(DMDBMS, constants);
   }
 
   protected String databaseType;
